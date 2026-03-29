@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { deriveMasterSeed, deriveMarkerFloat, floatToMarkerValue, computeZScore } from '../engine';
 import type { Marker, MarkerResult, Demographics, StatParams } from '../types';
 import { isSexSplitRange } from '../types';
@@ -46,6 +46,10 @@ export function useBioMap(
   const [results, setResults] = useState<MarkerResult[]>([]);
   const [error, setError] = useState<string>();
   const [trendData, setTrendData] = useState<Record<string, number[]>>({});
+
+  // Stable string keys — avoids infinite loops from new object references each render
+  const noncesKey = useMemo(() => JSON.stringify(nonces), [nonces]);
+  const demoKey = `${demographics.sex}:${demographics.ageBracket}`;
 
   // Abort controller for cancellation when inputs change
   const abortRef = useRef<{ cancelled: boolean }>({ cancelled: false });
@@ -118,7 +122,8 @@ export function useBioMap(
     return () => {
       abort.cancelled = true;
     };
-  }, [passphrase, markers, year, month, nonces, demographics]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passphrase, markers, year, month, noncesKey, demoKey]);
 
   return { loadState, results, error, trendData };
 }

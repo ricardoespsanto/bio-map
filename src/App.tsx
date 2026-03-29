@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PassphraseGate } from './components/PassphraseGate';
 import { Dashboard } from './components/Dashboard';
 import { useBioMap } from './hooks/useBioMap';
@@ -15,7 +15,7 @@ export function App() {
   const { date, sex, ageBracket, nonces } = urlState;
   const [year, month] = date.split('-').map(Number);
 
-  const demographics: Demographics = { sex, ageBracket };
+  const demographics = useMemo<Demographics>(() => ({ sex, ageBracket }), [sex, ageBracket]);
 
   const { loadState, results, trendData } = useBioMap(
     passphrase,
