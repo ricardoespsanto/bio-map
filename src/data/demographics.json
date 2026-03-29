@@ -1,0 +1,181 @@
+{
+  "version": "v1",
+  "ageBrackets": ["20-30", "31-40", "41-50", "51-60", "61+"],
+  "markers": {
+    "glucose": {
+      "20-30": { "male": { "mean": 89, "sd": 8 },  "female": { "mean": 86, "sd": 7 } },
+      "31-40": { "male": { "mean": 92, "sd": 9 },  "female": { "mean": 89, "sd": 8 } },
+      "41-50": { "male": { "mean": 95, "sd": 10 }, "female": { "mean": 92, "sd": 9 } },
+      "51-60": { "male": { "mean": 98, "sd": 11 }, "female": { "mean": 96, "sd": 10 } },
+      "61+":   { "male": { "mean": 101, "sd": 12 },"female": { "mean": 100, "sd": 11 } }
+    },
+    "hba1c": {
+      "20-30": { "male": { "mean": 5.1, "sd": 0.3 }, "female": { "mean": 5.0, "sd": 0.3 } },
+      "31-40": { "male": { "mean": 5.2, "sd": 0.3 }, "female": { "mean": 5.1, "sd": 0.3 } },
+      "41-50": { "male": { "mean": 5.4, "sd": 0.4 }, "female": { "mean": 5.3, "sd": 0.4 } },
+      "51-60": { "male": { "mean": 5.6, "sd": 0.5 }, "female": { "mean": 5.5, "sd": 0.4 } },
+      "61+":   { "male": { "mean": 5.8, "sd": 0.6 }, "female": { "mean": 5.7, "sd": 0.5 } }
+    },
+    "total_cholesterol": {
+      "20-30": { "male": { "mean": 181, "sd": 30 }, "female": { "mean": 179, "sd": 29 } },
+      "31-40": { "male": { "mean": 199, "sd": 34 }, "female": { "mean": 193, "sd": 32 } },
+      "41-50": { "male": { "mean": 211, "sd": 36 }, "female": { "mean": 207, "sd": 35 } },
+      "51-60": { "male": { "mean": 215, "sd": 37 }, "female": { "mean": 220, "sd": 38 } },
+      "61+":   { "male": { "mean": 210, "sd": 38 }, "female": { "mean": 228, "sd": 40 } }
+    },
+    "ldl": {
+      "20-30": { "male": { "mean": 109, "sd": 26 }, "female": { "mean": 100, "sd": 24 } },
+      "31-40": { "male": { "mean": 124, "sd": 29 }, "female": { "mean": 115, "sd": 27 } },
+      "41-50": { "male": { "mean": 134, "sd": 31 }, "female": { "mean": 128, "sd": 30 } },
+      "51-60": { "male": { "mean": 135, "sd": 32 }, "female": { "mean": 140, "sd": 33 } },
+      "61+":   { "male": { "mean": 132, "sd": 33 }, "female": { "mean": 146, "sd": 35 } }
+    },
+    "hdl": {
+      "20-30": { "male": { "mean": 48, "sd": 10 }, "female": { "mean": 58, "sd": 12 } },
+      "31-40": { "male": { "mean": 47, "sd": 10 }, "female": { "mean": 57, "sd": 12 } },
+      "41-50": { "male": { "mean": 46, "sd": 10 }, "female": { "mean": 57, "sd": 12 } },
+      "51-60": { "male": { "mean": 47, "sd": 11 }, "female": { "mean": 59, "sd": 13 } },
+      "61+":   { "male": { "mean": 48, "sd": 11 }, "female": { "mean": 60, "sd": 14 } }
+    },
+    "triglycerides": {
+      "20-30": { "male": { "mean": 120, "sd": 60 }, "female": { "mean": 95,  "sd": 45 } },
+      "31-40": { "male": { "mean": 138, "sd": 70 }, "female": { "mean": 110, "sd": 55 } },
+      "41-50": { "male": { "mean": 152, "sd": 75 }, "female": { "mean": 128, "sd": 65 } },
+      "51-60": { "male": { "mean": 158, "sd": 78 }, "female": { "mean": 148, "sd": 72 } },
+      "61+":   { "male": { "mean": 148, "sd": 72 }, "female": { "mean": 158, "sd": 76 } }
+    },
+    "testosterone": {
+      "20-30": { "male": { "mean": 680, "sd": 150 }, "female": { "mean": 35, "sd": 12 } },
+      "31-40": { "male": { "mean": 620, "sd": 140 }, "female": { "mean": 33, "sd": 11 } },
+      "41-50": { "male": { "mean": 540, "sd": 130 }, "female": { "mean": 30, "sd": 10 } },
+      "51-60": { "male": { "mean": 440, "sd": 120 }, "female": { "mean": 25, "sd": 9  } },
+      "61+":   { "male": { "mean": 350, "sd": 100 }, "female": { "mean": 20, "sd": 8  } }
+    },
+    "estradiol": {
+      "20-30": { "male": { "mean": 25,  "sd": 8 }, "female": { "mean": 150, "sd": 80 } },
+      "31-40": { "male": { "mean": 27,  "sd": 9 }, "female": { "mean": 145, "sd": 78 } },
+      "41-50": { "male": { "mean": 28,  "sd": 9 }, "female": { "mean": 120, "sd": 75 } },
+      "51-60": { "male": { "mean": 25,  "sd": 8 }, "female": { "mean": 40,  "sd": 20 } },
+      "61+":   { "male": { "mean": 22,  "sd": 7 }, "female": { "mean": 22,  "sd": 8  } }
+    },
+    "tsh": {
+      "20-30": { "male": { "mean": 2.1, "sd": 0.9 }, "female": { "mean": 2.3, "sd": 1.0 } },
+      "31-40": { "male": { "mean": 2.2, "sd": 0.9 }, "female": { "mean": 2.4, "sd": 1.0 } },
+      "41-50": { "male": { "mean": 2.3, "sd": 1.0 }, "female": { "mean": 2.6, "sd": 1.1 } },
+      "51-60": { "male": { "mean": 2.5, "sd": 1.1 }, "female": { "mean": 2.8, "sd": 1.2 } },
+      "61+":   { "male": { "mean": 2.8, "sd": 1.3 }, "female": { "mean": 3.0, "sd": 1.4 } }
+    },
+    "free_t4": {
+      "20-30": { "male": { "mean": 1.3, "sd": 0.2 }, "female": { "mean": 1.2, "sd": 0.2 } },
+      "31-40": { "male": { "mean": 1.3, "sd": 0.2 }, "female": { "mean": 1.2, "sd": 0.2 } },
+      "41-50": { "male": { "mean": 1.3, "sd": 0.2 }, "female": { "mean": 1.2, "sd": 0.2 } },
+      "51-60": { "male": { "mean": 1.2, "sd": 0.2 }, "female": { "mean": 1.2, "sd": 0.2 } },
+      "61+":   { "male": { "mean": 1.2, "sd": 0.2 }, "female": { "mean": 1.1, "sd": 0.2 } }
+    },
+    "vitamin_d": {
+      "20-30": { "male": { "mean": 28, "sd": 12 }, "female": { "mean": 26, "sd": 11 } },
+      "31-40": { "male": { "mean": 27, "sd": 12 }, "female": { "mean": 26, "sd": 11 } },
+      "41-50": { "male": { "mean": 27, "sd": 12 }, "female": { "mean": 26, "sd": 11 } },
+      "51-60": { "male": { "mean": 26, "sd": 11 }, "female": { "mean": 25, "sd": 11 } },
+      "61+":   { "male": { "mean": 24, "sd": 11 }, "female": { "mean": 23, "sd": 10 } }
+    },
+    "ferritin": {
+      "20-30": { "male": { "mean": 100, "sd": 60 }, "female": { "mean": 40,  "sd": 25 } },
+      "31-40": { "male": { "mean": 120, "sd": 70 }, "female": { "mean": 45,  "sd": 28 } },
+      "41-50": { "male": { "mean": 140, "sd": 80 }, "female": { "mean": 55,  "sd": 35 } },
+      "51-60": { "male": { "mean": 150, "sd": 85 }, "female": { "mean": 80,  "sd": 50 } },
+      "61+":   { "male": { "mean": 155, "sd": 88 }, "female": { "mean": 100, "sd": 60 } }
+    },
+    "hemoglobin": {
+      "20-30": { "male": { "mean": 15.2, "sd": 1.0 }, "female": { "mean": 13.5, "sd": 1.0 } },
+      "31-40": { "male": { "mean": 15.0, "sd": 1.0 }, "female": { "mean": 13.4, "sd": 1.0 } },
+      "41-50": { "male": { "mean": 14.9, "sd": 1.0 }, "female": { "mean": 13.4, "sd": 1.0 } },
+      "51-60": { "male": { "mean": 14.7, "sd": 1.1 }, "female": { "mean": 13.5, "sd": 1.1 } },
+      "61+":   { "male": { "mean": 14.3, "sd": 1.2 }, "female": { "mean": 13.4, "sd": 1.2 } }
+    },
+    "wbc": {
+      "20-30": { "male": { "mean": 6.8, "sd": 2.0 }, "female": { "mean": 7.1, "sd": 2.0 } },
+      "31-40": { "male": { "mean": 6.9, "sd": 2.0 }, "female": { "mean": 7.1, "sd": 2.0 } },
+      "41-50": { "male": { "mean": 7.0, "sd": 2.0 }, "female": { "mean": 7.2, "sd": 2.1 } },
+      "51-60": { "male": { "mean": 7.0, "sd": 2.1 }, "female": { "mean": 7.2, "sd": 2.1 } },
+      "61+":   { "male": { "mean": 6.9, "sd": 2.1 }, "female": { "mean": 7.0, "sd": 2.1 } }
+    },
+    "platelets": {
+      "20-30": { "male": { "mean": 252, "sd": 56 }, "female": { "mean": 272, "sd": 62 } },
+      "31-40": { "male": { "mean": 248, "sd": 56 }, "female": { "mean": 268, "sd": 60 } },
+      "41-50": { "male": { "mean": 242, "sd": 55 }, "female": { "mean": 262, "sd": 60 } },
+      "51-60": { "male": { "mean": 236, "sd": 55 }, "female": { "mean": 258, "sd": 60 } },
+      "61+":   { "male": { "mean": 228, "sd": 55 }, "female": { "mean": 248, "sd": 58 } }
+    },
+    "creatinine": {
+      "20-30": { "male": { "mean": 0.98, "sd": 0.10 }, "female": { "mean": 0.79, "sd": 0.09 } },
+      "31-40": { "male": { "mean": 1.00, "sd": 0.11 }, "female": { "mean": 0.81, "sd": 0.09 } },
+      "41-50": { "male": { "mean": 1.02, "sd": 0.12 }, "female": { "mean": 0.83, "sd": 0.10 } },
+      "51-60": { "male": { "mean": 1.05, "sd": 0.13 }, "female": { "mean": 0.85, "sd": 0.11 } },
+      "61+":   { "male": { "mean": 1.08, "sd": 0.15 }, "female": { "mean": 0.87, "sd": 0.12 } }
+    },
+    "egfr": {
+      "20-30": { "male": { "mean": 101, "sd": 12 }, "female": { "mean": 103, "sd": 12 } },
+      "31-40": { "male": { "mean": 96,  "sd": 12 }, "female": { "mean": 98,  "sd": 12 } },
+      "41-50": { "male": { "mean": 88,  "sd": 13 }, "female": { "mean": 90,  "sd": 13 } },
+      "51-60": { "male": { "mean": 79,  "sd": 14 }, "female": { "mean": 81,  "sd": 14 } },
+      "61+":   { "male": { "mean": 67,  "sd": 16 }, "female": { "mean": 69,  "sd": 16 } }
+    },
+    "alt": {
+      "20-30": { "male": { "mean": 24, "sd": 10 }, "female": { "mean": 18, "sd": 8 } },
+      "31-40": { "male": { "mean": 27, "sd": 11 }, "female": { "mean": 20, "sd": 9 } },
+      "41-50": { "male": { "mean": 29, "sd": 12 }, "female": { "mean": 22, "sd": 10 } },
+      "51-60": { "male": { "mean": 28, "sd": 11 }, "female": { "mean": 23, "sd": 10 } },
+      "61+":   { "male": { "mean": 26, "sd": 11 }, "female": { "mean": 22, "sd": 10 } }
+    },
+    "ast": {
+      "20-30": { "male": { "mean": 22, "sd": 8 }, "female": { "mean": 20, "sd": 7 } },
+      "31-40": { "male": { "mean": 24, "sd": 9 }, "female": { "mean": 21, "sd": 8 } },
+      "41-50": { "male": { "mean": 26, "sd": 10 }, "female": { "mean": 22, "sd": 8 } },
+      "51-60": { "male": { "mean": 26, "sd": 10 }, "female": { "mean": 23, "sd": 9 } },
+      "61+":   { "male": { "mean": 25, "sd": 10 }, "female": { "mean": 23, "sd": 9 } }
+    },
+    "crp": {
+      "20-30": { "male": { "mean": 1.5, "sd": 2.0 }, "female": { "mean": 2.0, "sd": 2.5 } },
+      "31-40": { "male": { "mean": 1.8, "sd": 2.2 }, "female": { "mean": 2.3, "sd": 2.8 } },
+      "41-50": { "male": { "mean": 2.2, "sd": 2.5 }, "female": { "mean": 2.8, "sd": 3.0 } },
+      "51-60": { "male": { "mean": 2.6, "sd": 2.8 }, "female": { "mean": 3.2, "sd": 3.3 } },
+      "61+":   { "male": { "mean": 3.0, "sd": 3.0 }, "female": { "mean": 3.5, "sd": 3.5 } }
+    },
+    "cortisol": {
+      "20-30": { "male": { "mean": 15, "sd": 5 }, "female": { "mean": 14, "sd": 5 } },
+      "31-40": { "male": { "mean": 15, "sd": 5 }, "female": { "mean": 14, "sd": 5 } },
+      "41-50": { "male": { "mean": 14, "sd": 5 }, "female": { "mean": 13, "sd": 5 } },
+      "51-60": { "male": { "mean": 13, "sd": 5 }, "female": { "mean": 13, "sd": 5 } },
+      "61+":   { "male": { "mean": 12, "sd": 5 }, "female": { "mean": 12, "sd": 5 } }
+    },
+    "insulin": {
+      "20-30": { "male": { "mean": 7,  "sd": 3 }, "female": { "mean": 7,  "sd": 3 } },
+      "31-40": { "male": { "mean": 8,  "sd": 4 }, "female": { "mean": 8,  "sd": 3 } },
+      "41-50": { "male": { "mean": 10, "sd": 5 }, "female": { "mean": 9,  "sd": 4 } },
+      "51-60": { "male": { "mean": 11, "sd": 5 }, "female": { "mean": 10, "sd": 5 } },
+      "61+":   { "male": { "mean": 11, "sd": 5 }, "female": { "mean": 10, "sd": 5 } }
+    },
+    "b12": {
+      "20-30": { "male": { "mean": 520, "sd": 200 }, "female": { "mean": 490, "sd": 190 } },
+      "31-40": { "male": { "mean": 510, "sd": 200 }, "female": { "mean": 480, "sd": 185 } },
+      "41-50": { "male": { "mean": 500, "sd": 200 }, "female": { "mean": 470, "sd": 185 } },
+      "51-60": { "male": { "mean": 490, "sd": 205 }, "female": { "mean": 460, "sd": 190 } },
+      "61+":   { "male": { "mean": 470, "sd": 210 }, "female": { "mean": 445, "sd": 195 } }
+    },
+    "folate": {
+      "20-30": { "male": { "mean": 12, "sd": 4 }, "female": { "mean": 13, "sd": 4 } },
+      "31-40": { "male": { "mean": 12, "sd": 4 }, "female": { "mean": 13, "sd": 4 } },
+      "41-50": { "male": { "mean": 11, "sd": 4 }, "female": { "mean": 12, "sd": 4 } },
+      "51-60": { "male": { "mean": 11, "sd": 4 }, "female": { "mean": 12, "sd": 4 } },
+      "61+":   { "male": { "mean": 11, "sd": 4 }, "female": { "mean": 12, "sd": 4 } }
+    },
+    "dheas": {
+      "20-30": { "male": { "mean": 380, "sd": 100 }, "female": { "mean": 220, "sd": 80 } },
+      "31-40": { "male": { "mean": 310, "sd": 95 },  "female": { "mean": 180, "sd": 72 } },
+      "41-50": { "male": { "mean": 240, "sd": 88 },  "female": { "mean": 145, "sd": 65 } },
+      "51-60": { "male": { "mean": 175, "sd": 75 },  "female": { "mean": 108, "sd": 52 } },
+      "61+":   { "male": { "mean": 130, "sd": 60 },  "female": { "mean": 80,  "sd": 40 } }
+    }
+  }
+}

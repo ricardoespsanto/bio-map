@@ -1,0 +1,251 @@
+[
+  {
+    "id": "glucose",
+    "name": "Glucose",
+    "unit": "mg/dL",
+    "precision": 0,
+    "category": "Metabolic",
+    "range": { "min": 50, "max": 400 },
+    "optimalRange": { "min": 70, "max": 99 }
+  },
+  {
+    "id": "hba1c",
+    "name": "HbA1c",
+    "unit": "%",
+    "precision": 1,
+    "category": "Metabolic",
+    "range": { "min": 4.0, "max": 15.0 },
+    "optimalRange": { "min": 4.8, "max": 5.6 }
+  },
+  {
+    "id": "total_cholesterol",
+    "name": "Total Cholesterol",
+    "unit": "mg/dL",
+    "precision": 0,
+    "category": "Lipids",
+    "range": { "min": 100, "max": 400 },
+    "optimalRange": { "min": 150, "max": 200 }
+  },
+  {
+    "id": "ldl",
+    "name": "LDL Cholesterol",
+    "unit": "mg/dL",
+    "precision": 0,
+    "category": "Lipids",
+    "range": { "min": 30, "max": 300 },
+    "optimalRange": { "min": 50, "max": 100 }
+  },
+  {
+    "id": "hdl",
+    "name": "HDL Cholesterol",
+    "unit": "mg/dL",
+    "precision": 0,
+    "category": "Lipids",
+    "range": { "min": 20, "max": 100 },
+    "optimalRange": { "min": 60, "max": 100 }
+  },
+  {
+    "id": "triglycerides",
+    "name": "Triglycerides",
+    "unit": "mg/dL",
+    "precision": 0,
+    "category": "Lipids",
+    "range": { "min": 30, "max": 1000 },
+    "optimalRange": { "min": 50, "max": 150 }
+  },
+  {
+    "id": "testosterone",
+    "name": "Testosterone",
+    "unit": "ng/dL",
+    "precision": 0,
+    "category": "Hormones",
+    "range": { "min": 10, "max": 1200 },
+    "optimalRange": {
+      "male": { "min": 400, "max": 900 },
+      "female": { "min": 15, "max": 70 }
+    }
+  },
+  {
+    "id": "estradiol",
+    "name": "Estradiol",
+    "unit": "pg/mL",
+    "precision": 1,
+    "category": "Hormones",
+    "range": { "min": 5, "max": 500 },
+    "optimalRange": {
+      "male": { "min": 10, "max": 40 },
+      "female": { "min": 50, "max": 350 }
+    }
+  },
+  {
+    "id": "tsh",
+    "name": "TSH",
+    "unit": "mIU/L",
+    "precision": 2,
+    "category": "Thyroid",
+    "range": { "min": 0.1, "max": 10.0 },
+    "optimalRange": { "min": 0.5, "max": 2.5 }
+  },
+  {
+    "id": "free_t4",
+    "name": "Free T4",
+    "unit": "ng/dL",
+    "precision": 2,
+    "category": "Thyroid",
+    "range": { "min": 0.5, "max": 3.0 },
+    "optimalRange": { "min": 0.9, "max": 1.8 }
+  },
+  {
+    "id": "vitamin_d",
+    "name": "Vitamin D",
+    "unit": "ng/mL",
+    "precision": 1,
+    "category": "Nutrients",
+    "range": { "min": 5, "max": 100 },
+    "optimalRange": { "min": 40, "max": 70 }
+  },
+  {
+    "id": "ferritin",
+    "name": "Ferritin",
+    "unit": "ng/mL",
+    "precision": 0,
+    "category": "Nutrients",
+    "range": { "min": 5, "max": 500 },
+    "optimalRange": {
+      "male": { "min": 30, "max": 300 },
+      "female": { "min": 15, "max": 150 }
+    }
+  },
+  {
+    "id": "hemoglobin",
+    "name": "Hemoglobin",
+    "unit": "g/dL",
+    "precision": 1,
+    "category": "CBC",
+    "range": { "min": 7, "max": 20 },
+    "optimalRange": {
+      "male": { "min": 13.5, "max": 17.5 },
+      "female": { "min": 12.0, "max": 15.5 }
+    }
+  },
+  {
+    "id": "wbc",
+    "name": "White Blood Cells",
+    "unit": "K/μL",
+    "precision": 1,
+    "category": "CBC",
+    "range": { "min": 2, "max": 20 },
+    "optimalRange": { "min": 4.5, "max": 11.0 }
+  },
+  {
+    "id": "platelets",
+    "name": "Platelets",
+    "unit": "K/μL",
+    "precision": 0,
+    "category": "CBC",
+    "range": { "min": 50, "max": 500 },
+    "optimalRange": { "min": 150, "max": 400 }
+  },
+  {
+    "id": "creatinine",
+    "name": "Creatinine",
+    "unit": "mg/dL",
+    "precision": 2,
+    "category": "Renal",
+    "range": { "min": 0.3, "max": 5.0 },
+    "optimalRange": {
+      "male": { "min": 0.7, "max": 1.3 },
+      "female": { "min": 0.5, "max": 1.1 }
+    }
+  },
+  {
+    "id": "egfr",
+    "name": "eGFR",
+    "unit": "mL/min/1.73m²",
+    "precision": 0,
+    "category": "Renal",
+    "range": { "min": 10, "max": 120 },
+    "optimalRange": { "min": 90, "max": 120 }
+  },
+  {
+    "id": "alt",
+    "name": "ALT",
+    "unit": "U/L",
+    "precision": 0,
+    "category": "Liver",
+    "range": { "min": 5, "max": 200 },
+    "optimalRange": {
+      "male": { "min": 7, "max": 40 },
+      "female": { "min": 7, "max": 35 }
+    }
+  },
+  {
+    "id": "ast",
+    "name": "AST",
+    "unit": "U/L",
+    "precision": 0,
+    "category": "Liver",
+    "range": { "min": 5, "max": 200 },
+    "optimalRange": {
+      "male": { "min": 10, "max": 40 },
+      "female": { "min": 10, "max": 35 }
+    }
+  },
+  {
+    "id": "crp",
+    "name": "C-Reactive Protein",
+    "unit": "mg/L",
+    "precision": 1,
+    "category": "Inflammation",
+    "range": { "min": 0, "max": 50 },
+    "optimalRange": { "min": 0, "max": 1.0 }
+  },
+  {
+    "id": "cortisol",
+    "name": "Cortisol (AM)",
+    "unit": "μg/dL",
+    "precision": 1,
+    "category": "Hormones",
+    "range": { "min": 2, "max": 50 },
+    "optimalRange": { "min": 10, "max": 20 }
+  },
+  {
+    "id": "insulin",
+    "name": "Fasting Insulin",
+    "unit": "μIU/mL",
+    "precision": 1,
+    "category": "Metabolic",
+    "range": { "min": 1, "max": 50 },
+    "optimalRange": { "min": 2, "max": 10 }
+  },
+  {
+    "id": "b12",
+    "name": "Vitamin B12",
+    "unit": "pg/mL",
+    "precision": 0,
+    "category": "Nutrients",
+    "range": { "min": 100, "max": 2000 },
+    "optimalRange": { "min": 400, "max": 1000 }
+  },
+  {
+    "id": "folate",
+    "name": "Folate",
+    "unit": "ng/mL",
+    "precision": 1,
+    "category": "Nutrients",
+    "range": { "min": 2, "max": 25 },
+    "optimalRange": { "min": 10, "max": 25 }
+  },
+  {
+    "id": "dheas",
+    "name": "DHEA-S",
+    "unit": "μg/dL",
+    "precision": 0,
+    "category": "Hormones",
+    "range": { "min": 10, "max": 600 },
+    "optimalRange": {
+      "male": { "min": 200, "max": 500 },
+      "female": { "min": 100, "max": 350 }
+    }
+  }
+]
