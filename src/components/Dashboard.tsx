@@ -38,6 +38,7 @@ export function Dashboard({
   const { date, sex, ageBracket, nonces, lens, activeMarker } = urlState;
   const [year, month] = date.split('-').map(Number);
   const monthLabels = buildMonthLabels(year, month);
+  const currentMonth = month == new Date().getMonth() + 1;
 
   const filteredResults =
     selectedCategory === 'All'
@@ -107,7 +108,7 @@ export function Dashboard({
               <span className="px-2 font-mono text-slate-300 min-w-[80px] text-center">
                 {MONTH_NAMES[month - 1]} {year}
               </span>
-              <button onClick={nextMonth} className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors">
+              <button disabled={currentMonth} onClick={nextMonth} className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors">
                 <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z" clipRule="evenodd" /></svg>
               </button>
             </div>
