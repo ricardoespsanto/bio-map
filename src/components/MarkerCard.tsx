@@ -5,8 +5,6 @@ import { BellCurve } from './BellCurve';
 import rawDemographics from '../data/demographics.json';
 import type { AgeBracket } from '../types';
 
-type DemographicsData = typeof rawDemographics;
-
 interface Props {
   result: MarkerResult;
   sex: BiologicalSex;
@@ -15,7 +13,6 @@ interface Props {
   isActive: boolean;
   trendValues?: number[];
   onActivate: () => void;
-  onCalibrate: () => void;
 }
 
 function statusColor(zScore: number | undefined, value: number, optMin: number, optMax: number) {
@@ -53,16 +50,8 @@ const colorClasses = {
   },
 };
 
-export function MarkerCard({
-  result,
-  sex,
-  ageBracket,
-  lens,
-  isActive,
-  onActivate,
-  onCalibrate,
-}: Props) {
-  const { marker, value, zScore, nonce } = result;
+export function MarkerCard({ result, sex, ageBracket, lens, isActive, onActivate }: Props) {
+  const { marker, value, zScore } = result;
 
   const optimalRange = isSexSplitRange(marker.optimalRange)
     ? sex === 'female' ? marker.optimalRange.female : marker.optimalRange.male
@@ -87,25 +76,16 @@ export function MarkerCard({
       onClick={onActivate}
     >
       <div className="p-4">
-        {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{marker.category}</p>
             <p className="text-slate-200 font-medium text-sm mt-0.5">{marker.name}</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            {nonce && (
-              <span className="text-xs bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded font-mono" title="Calibrated with nonce">
-                ⚙ {nonce}
-              </span>
-            )}
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cls.badge}`}>
-              {color === 'green' ? 'Optimal' : color === 'yellow' ? 'Borderline' : 'Review'}
-            </span>
-          </div>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cls.badge}`}>
+            {color === 'green' ? 'Optimal' : color === 'yellow' ? 'Borderline' : 'Review'}
+          </span>
         </div>
 
-        {/* Value */}
         <div className="flex items-baseline gap-1.5 mb-3">
           <span className={`text-2xl font-bold font-mono tracking-tight ${cls.value}`}>
             {displayValue}
@@ -113,12 +93,10 @@ export function MarkerCard({
           <span className="text-slate-500 text-xs">{lens === 'zscore' ? 'z-score' : marker.unit}</span>
         </div>
 
-        {/* Optimal range hint */}
         <p className="text-xs text-slate-600 mb-3">
           Optimal: {optimalRange.min}–{optimalRange.max} {marker.unit}
         </p>
 
-        {/* Bell Curve */}
         {stats && (
           <BellCurve
             mean={stats.mean}
@@ -131,23 +109,11 @@ export function MarkerCard({
         )}
       </div>
 
-      {/* Footer */}
-      {isActive && (
-        <div
-          className="border-t border-slate-800 px-4 py-2.5 flex items-center justify-between"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {stats && (
-            <span className="text-xs text-slate-600 font-mono">
-              μ {stats.mean} · σ {stats.sd}
-            </span>
-          )}
-          <button
-            onClick={onCalibrate}
-            className="text-xs text-cyan-500 hover:text-cyan-300 font-medium transition-colors ml-auto"
-          >
-            Calibrate with lab result →
-          </button>
+      {isActive && stats && (
+        <div className="border-t border-slate-800 px-4 py-2.5">
+          <span className="text-xs text-slate-600 font-mono">
+            μ {stats.mean} · σ {stats.sd}
+          </span>
         </div>
       )}
     </div>

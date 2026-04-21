@@ -14,11 +14,8 @@ export interface Marker {
   id: string;
   name: string;
   unit: string;
-  /** Decimal places for display and nonce-tolerance calculation */
   precision: number;
-  /** Absolute biological bounds used for deterministic mapping */
   range: GlobalRange;
-  /** Clinically optimal range; may be sex-split */
   optimalRange: GlobalRange | SexSplitRange;
   category: string;
 }
@@ -46,46 +43,46 @@ export interface Demographics {
 
 export interface MarkerResult {
   marker: Marker;
-  /** Raw generated or nonce-adjusted value in marker's units */
   value: number;
-  /** Underlying [0,1] float before range mapping */
   float: number;
-  /** Applied adjustment nonce, if any */
-  nonce?: string;
-  /** Z-score relative to demographic stats */
   zScore?: number;
 }
 
-// ─── URL / App state ───────────────────────────────────────────────────────
+// ─── Health record (deep-link URL database) ───────────────────────────────
+
+export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+export interface Visit {
+  year: number;
+  quarter: Quarter;
+  sex: BiologicalSex;
+  ageBracket: AgeBracket;
+  /** Only markers that were actually tested; untested markers are omitted */
+  values: Record<string, number>;
+}
+
+export interface HealthRecord {
+  version: 1;
+  visits: Visit[];
+}
+
+// ─── Ephemeral UI state (not persisted in URL) ────────────────────────────
+
+export interface UiState {
+  selectedVisitIndex: number;
+  lens: 'raw' | 'zscore';
+  activeMarkerIds: string[];
+  activeMarker?: string;
+  selectedCategory: string;
+}
+
+// ─── URL / App state (legacy — kept temporarily during migration) ──────────
 
 export interface UrlState {
-  /** YYYY-MM */
   date: string;
   sex: BiologicalSex;
   ageBracket: AgeBracket;
-  /** Map of markerId → nonce string */
-  nonces: Record<string, string>;
-  /** 'raw' | 'zscore' */
+  activeMarkerIds: string[];
   lens: 'raw' | 'zscore';
-  /** Which marker is expanded for detail view */
   activeMarker?: string;
 }
-
-// ─── Nonce miner messages ──────────────────────────────────────────────────
-
-export interface MinerRequest {
-  passphrase: string;
-  markerIndex: number;
-  markerId: string;
-  year: number;
-  month: number;
-  targetValue: number;
-  rangeMin: number;
-  rangeMax: number;
-  precision: number;
-}
-
-export type MinerResponse =
-  | { type: 'progress'; tried: number }
-  | { type: 'found'; nonce: string; value: number; markerId: string }
-  | { type: 'notFound'; markerId: string };

@@ -1,204 +1,158 @@
 /**
- * Bio-Map Engine — Determinism & Correctness Tests
- *
- * NFR: 3 specific passphrases must always yield the exact same 25 marker values.
- * Snapshot tests capture the canonical output on first run; subsequent runs
- * verify nothing has drifted.
+ * Bio-Map Codec — Round-trip & Correctness Tests
  */
 
 import { describe, it, expect } from 'vitest';
 import {
-  deriveMasterSeed,
-  deriveMarkerFloat,
-  floatToMarkerValue,
-  hashBufferToFloat,
-  generateAllMarkers,
-  computeZScore,
-  SCHEMA_VERSION,
-} from '../src/engine';
-import markersRaw from '../src/data/markers.json';
+  encodeHealthRecord,
+  decodeHealthRecord,
+  buildVisitLabel,
+  sortVisits,
+  BASE_YEAR,
+  CODEC_VERSION,
+} from '../src/codec';
+import type { HealthRecord, Visit } from '../src/types';
 
-const MARKERS = markersRaw.map((m, i) => ({
-  id: m.id,
-  rangeMin: m.range.min,
-  rangeMax: m.range.max,
-  index: i,
-}));
+const SAMPLE_VISIT: Visit = {
+  year: 2026,
+  quarter: 'Q1',
+  sex: 'male',
+  ageBracket: '31-40',
+  values: {
+    glucose: 95,
+    hba1c: 5.4,
+    ldl: 110,
+    hdl: 52,
+    tsh: 1.8,
+  },
+};
 
-// ─── The 3 canonical passphrases from the NFR ─────────────────────────────
-const CANONICAL_PASSPHRASES = [
-  'healthy-sparrow-42',
-  'mountain-river-flow',
-  'xK9mP2qRvT8z',
-] as const;
+const SAMPLE_RECORD: HealthRecord = {
+  version: 1,
+  visits: [SAMPLE_VISIT],
+};
 
-const TEST_YEAR = 2026;
-const TEST_MONTH = 3;
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-// ─── Schema version ────────────────────────────────────────────────────────
+it('BASE_YEAR is 2010', () => expect(BASE_YEAR).toBe(2010));
+it('CODEC_VERSION is 1', () => expect(CODEC_VERSION).toBe(1));
 
-it('SCHEMA_VERSION is v1', () => {
-  expect(SCHEMA_VERSION).toBe('v1');
-});
+// ─── Round-trip ───────────────────────────────────────────────────────────────
 
-// ─── hashBufferToFloat contract ────────────────────────────────────────────
+describe('encode → decode round-trip', () => {
+  it('single visit with 5 markers', async () => {
+    const encoded = await encodeHealthRecord(SAMPLE_RECORD);
+    expect(typeof encoded).toBe('string');
+    expect(encoded.length).toBeGreaterThan(0);
 
-describe('hashBufferToFloat', () => {
-  it('returns a value in [0, 1)', () => {
-    const buf = new Uint8Array(32).fill(0).buffer;
-    expect(hashBufferToFloat(buf)).toBeGreaterThanOrEqual(0);
-    expect(hashBufferToFloat(buf)).toBeLessThan(1);
+    const decoded = await decodeHealthRecord(encoded);
+    expect(decoded.version).toBe(1);
+    expect(decoded.visits.length).toBe(1);
+
+    const v = decoded.visits[0];
+    expect(v.year).toBe(2026);
+    expect(v.quarter).toBe('Q1');
+    expect(v.sex).toBe('male');
+    expect(v.ageBracket).toBe('31-40');
+    expect(v.values.glucose).toBeCloseTo(95, 0);
+    expect(v.values.hba1c).toBeCloseTo(5.4, 1);
+    expect(v.values.ldl).toBeCloseTo(110, 0);
   });
 
-  it('max byte value approaches but does not reach 1', () => {
-    const buf = new Uint8Array(32).fill(0xff).buffer;
-    const f = hashBufferToFloat(buf);
-    expect(f).toBeGreaterThanOrEqual(0);
-    expect(f).toBeLessThan(1);
+  it('empty visits array', async () => {
+    const record: HealthRecord = { version: 1, visits: [] };
+    const encoded = await encodeHealthRecord(record);
+    const decoded = await decodeHealthRecord(encoded);
+    expect(decoded.visits.length).toBe(0);
   });
 
-  it('all-zeros and all-ones are different', () => {
-    const zeros = new Uint8Array(32).fill(0x00).buffer;
-    const ones = new Uint8Array(32).fill(0xff).buffer;
-    expect(hashBufferToFloat(zeros)).not.toBe(hashBufferToFloat(ones));
-  });
-});
-
-// ─── floatToMarkerValue ────────────────────────────────────────────────────
-
-describe('floatToMarkerValue', () => {
-  it('maps 0 → min', () => expect(floatToMarkerValue(0, 50, 400)).toBe(50));
-  it('maps 1 → max', () => expect(floatToMarkerValue(1, 50, 400)).toBe(400));
-  it('maps 0.5 → midpoint', () => expect(floatToMarkerValue(0.5, 50, 400)).toBe(225));
-  it('preserves linearity', () => {
-    const min = 70; const max = 200;
-    for (const f of [0.1, 0.25, 0.75, 0.9]) {
-      expect(floatToMarkerValue(f, min, max)).toBeCloseTo(min + f * (max - min), 10);
+  it('all 25 markers present', async () => {
+    const { default: markersRaw } = await import('../src/data/markers.json', { assert: { type: 'json' } });
+    const values: Record<string, number> = {};
+    for (const m of markersRaw) {
+      values[m.id] = (m.range.min + m.range.max) / 2;
+    }
+    const record: HealthRecord = {
+      version: 1,
+      visits: [{ year: 2025, quarter: 'Q3', sex: 'female', ageBracket: '41-50', values }],
+    };
+    const decoded = await decodeHealthRecord(await encodeHealthRecord(record));
+    for (const m of markersRaw) {
+      // Codec uses Math.round at marker precision; allow ±1 step of rounding error
+      const step = Math.pow(10, -m.precision);
+      const diff = Math.abs(decoded.visits[0].values[m.id] - values[m.id]);
+      expect(diff).toBeLessThanOrEqual(step * 0.5 + Number.EPSILON * 10);
     }
   });
-});
 
-// ─── computeZScore ─────────────────────────────────────────────────────────
+  it('40 visits round-trips correctly', async () => {
+    const visits: Visit[] = [];
+    for (let y = 2016; y < 2026; y++) {
+      for (const q of ['Q1', 'Q2', 'Q3', 'Q4'] as const) {
+        visits.push({ year: y, quarter: q, sex: 'male', ageBracket: '31-40', values: { glucose: 95, ldl: 110 } });
+      }
+    }
+    const record: HealthRecord = { version: 1, visits };
+    const decoded = await decodeHealthRecord(await encodeHealthRecord(record));
+    expect(decoded.visits.length).toBe(40);
+  });
 
-describe('computeZScore', () => {
-  it('returns 0 at the mean', () => expect(computeZScore(100, 100, 10)).toBe(0));
-  it('returns +1 at mean + 1σ', () => expect(computeZScore(110, 100, 10)).toBe(1));
-  it('returns −2 at mean − 2σ', () => expect(computeZScore(80, 100, 10)).toBe(-2));
-  it('returns 0 when sd is 0', () => expect(computeZScore(100, 100, 0)).toBe(0));
-});
+  it('encoded string is URL-safe base64url (no +, /, =)', async () => {
+    const encoded = await encodeHealthRecord(SAMPLE_RECORD);
+    expect(encoded).not.toMatch(/[+/=]/);
+  });
 
-// ─── Determinism: same input → same output ─────────────────────────────────
-
-describe('deriveMarkerFloat — determinism', () => {
-  it('returns identical value on repeat calls with same inputs', async () => {
-    const seed = await deriveMasterSeed('test-passphrase-abc');
-    const a = await deriveMarkerFloat(seed, 0, 2026, 3);
-    const b = await deriveMarkerFloat(seed, 0, 2026, 3);
+  it('deterministic: same record encodes to same string', async () => {
+    const a = await encodeHealthRecord(SAMPLE_RECORD);
+    const b = await encodeHealthRecord(SAMPLE_RECORD);
     expect(a).toBe(b);
   });
-
-  it('all 25 markers are deterministic', async () => {
-    const seed = await deriveMasterSeed('determinism-check');
-    const run1 = await Promise.all(MARKERS.map((m) => deriveMarkerFloat(seed, m.index, 2026, 3)));
-    const run2 = await Promise.all(MARKERS.map((m) => deriveMarkerFloat(seed, m.index, 2026, 3)));
-    expect(run1).toEqual(run2);
-  });
 });
 
-// ─── Isolation: different inputs → different outputs ──────────────────────
+// ─── Demographics round-trip ──────────────────────────────────────────────────
 
-describe('deriveMarkerFloat — isolation', () => {
-  it('different passphrases produce different floats', async () => {
-    const s1 = await deriveMasterSeed('passphrase-alpha');
-    const s2 = await deriveMasterSeed('passphrase-beta');
-    const f1 = await deriveMarkerFloat(s1, 0, 2026, 3);
-    const f2 = await deriveMarkerFloat(s2, 0, 2026, 3);
-    expect(f1).not.toBe(f2);
-  });
-
-  it('different markers produce different floats', async () => {
-    const seed = await deriveMasterSeed('isolation-test');
-    const floats = await Promise.all(MARKERS.map((m) => deriveMarkerFloat(seed, m.index, 2026, 3)));
-    const unique = new Set(floats);
-    expect(unique.size).toBe(MARKERS.length);
-  });
-
-  it('different months produce different floats', async () => {
-    const seed = await deriveMasterSeed('monthly-test');
-    const march = await deriveMarkerFloat(seed, 0, 2026, 3);
-    const april = await deriveMarkerFloat(seed, 0, 2026, 4);
-    expect(march).not.toBe(april);
-  });
-
-  it('different years produce different floats', async () => {
-    const seed = await deriveMasterSeed('yearly-test');
-    const y2026 = await deriveMarkerFloat(seed, 0, 2026, 3);
-    const y2025 = await deriveMarkerFloat(seed, 0, 2025, 3);
-    expect(y2026).not.toBe(y2025);
-  });
-
-  it('nonce changes the derived value', async () => {
-    const seed = await deriveMasterSeed('nonce-test');
-    const base = await deriveMarkerFloat(seed, 0, 2026, 3);
-    const with_nonce = await deriveMarkerFloat(seed, 0, 2026, 3, 'abc');
-    expect(base).not.toBe(with_nonce);
-  });
-
-  it('different nonces produce different floats', async () => {
-    const seed = await deriveMasterSeed('nonce-isolation');
-    const a = await deriveMarkerFloat(seed, 0, 2026, 3, 'abc');
-    const b = await deriveMarkerFloat(seed, 0, 2026, 3, 'xyz');
-    expect(a).not.toBe(b);
-  });
-});
-
-// ─── Range bounds: generated values stay within marker bounds ─────────────
-
-describe('value bounds', () => {
-  it('all generated values are within [min, max] for each marker', async () => {
-    const seed = await deriveMasterSeed('bounds-test');
-    for (const m of MARKERS) {
-      const float = await deriveMarkerFloat(seed, m.index, 2026, 3);
-      const value = floatToMarkerValue(float, m.rangeMin, m.rangeMax);
-      expect(value).toBeGreaterThanOrEqual(m.rangeMin);
-      expect(value).toBeLessThanOrEqual(m.rangeMax);
+describe('demographics preservation', () => {
+  for (const sex of ['male', 'female'] as const) {
+    for (const ageBracket of ['20-30', '31-40', '41-50', '51-60', '61+'] as const) {
+      it(`${sex} / ${ageBracket}`, async () => {
+        const record: HealthRecord = {
+          version: 1,
+          visits: [{ year: 2024, quarter: 'Q2', sex, ageBracket, values: { glucose: 90 } }],
+        };
+        const decoded = await decodeHealthRecord(await encodeHealthRecord(record));
+        expect(decoded.visits[0].sex).toBe(sex);
+        expect(decoded.visits[0].ageBracket).toBe(ageBracket);
+      });
     }
-  });
-});
-
-// ─── NFR: 3 canonical passphrases — snapshot regression tests ─────────────
-// On first run `vitest` creates __snapshots__/engine.test.ts.snap.
-// Subsequent runs verify nothing has changed in the derivation logic.
-
-describe('canonical passphrase snapshots (NFR)', () => {
-  for (const phrase of CANONICAL_PASSPHRASES) {
-    it(`"${phrase}" yields consistent 25 marker values`, async () => {
-      const derived = await generateAllMarkers(phrase, MARKERS, TEST_YEAR, TEST_MONTH);
-      const snapshot = derived.map((d) => ({
-        id: d.id,
-        // Round to 8 decimal places to avoid floating-point noise in snapshots
-        float: Math.round(d.float * 1e8) / 1e8,
-        value: Math.round(d.value * 1e4) / 1e4,
-      }));
-      expect(snapshot).toMatchSnapshot();
-    });
   }
 });
 
-// ─── generateAllMarkers with nonces ───────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-describe('generateAllMarkers with nonces', () => {
-  it('applies nonces and changes affected marker values', async () => {
-    const baseResults = await generateAllMarkers('nonce-batch-test', MARKERS, 2026, 3);
-    const noncedResults = await generateAllMarkers('nonce-batch-test', MARKERS, 2026, 3, {
-      glucose: 'aaa',
-    });
+describe('buildVisitLabel', () => {
+  it('formats Q1 2024', () => expect(buildVisitLabel({ year: 2024, quarter: 'Q1', sex: 'male', ageBracket: '31-40', values: {} })).toBe('Q1 2024'));
+  it('formats Q4 2019', () => expect(buildVisitLabel({ year: 2019, quarter: 'Q4', sex: 'female', ageBracket: '61+', values: {} })).toBe('Q4 2019'));
+});
 
-    const glucoseIdx = MARKERS.findIndex((m) => m.id === 'glucose');
-    expect(noncedResults[glucoseIdx].value).not.toBe(baseResults[glucoseIdx].value);
+describe('sortVisits', () => {
+  it('sorts chronologically', () => {
+    const visits: Visit[] = [
+      { year: 2024, quarter: 'Q3', sex: 'male', ageBracket: '31-40', values: {} },
+      { year: 2024, quarter: 'Q1', sex: 'male', ageBracket: '31-40', values: {} },
+      { year: 2023, quarter: 'Q4', sex: 'male', ageBracket: '31-40', values: {} },
+    ];
+    const sorted = sortVisits(visits);
+    expect(sorted[0].year).toBe(2023);
+    expect(sorted[1].quarter).toBe('Q1');
+    expect(sorted[2].quarter).toBe('Q3');
+  });
 
-    // Non-nonce markers are unchanged
-    const hba1cIdx = MARKERS.findIndex((m) => m.id === 'hba1c');
-    expect(noncedResults[hba1cIdx].value).toBe(baseResults[hba1cIdx].value);
+  it('does not mutate original array', () => {
+    const visits: Visit[] = [
+      { year: 2024, quarter: 'Q2', sex: 'male', ageBracket: '31-40', values: {} },
+      { year: 2024, quarter: 'Q1', sex: 'male', ageBracket: '31-40', values: {} },
+    ];
+    sortVisits(visits);
+    expect(visits[0].quarter).toBe('Q2');
   });
 });

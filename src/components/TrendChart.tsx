@@ -1,11 +1,11 @@
 interface Props {
-  values: number[]; // 6 data points, oldest → newest
+  values: number[];
   rangeMin: number;
   rangeMax: number;
   optimalMin: number;
   optimalMax: number;
   unit: string;
-  monthLabels: string[]; // 6 labels e.g. ['Oct', 'Nov', ...]
+  labels: string[];
 }
 
 const W = 320;
@@ -15,7 +15,7 @@ const PAD_Y = 10;
 const PLOT_W = W - PAD_X * 2;
 const PLOT_H = H - PAD_Y * 2 - 14; // 14px for bottom labels
 
-export function TrendChart({ values, rangeMin, rangeMax, optimalMin, optimalMax, unit, monthLabels }: Props) {
+export function TrendChart({ values, rangeMin, rangeMax, optimalMin, optimalMax, unit, labels }: Props) {
   if (values.length < 2) return null;
 
   const displayMin = Math.min(...values, optimalMin) - (rangeMax - rangeMin) * 0.05;
@@ -84,8 +84,8 @@ export function TrendChart({ values, rangeMin, rangeMax, optimalMin, optimalMax,
         );
       })}
 
-      {/* Month labels */}
-      {monthLabels.map((label, i) => (
+      {/* Labels */}
+      {labels.map((label, i) => (
         <text
           key={i}
           x={toX(i)}
@@ -106,7 +106,7 @@ export function TrendChart({ values, rangeMin, rangeMax, optimalMin, optimalMax,
 }
 
 // Helper: generate 6-month label array ending at given year/month
-export function buildMonthLabels(year: number, month: number): string[] {
+export function buildMonthLabels(_year: number, month: number): string[] {
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const labels: string[] = [];
   for (let offset = 5; offset >= 0; offset--) {
