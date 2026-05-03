@@ -14,7 +14,7 @@ export interface Marker {
   id: string;
   name: string;
   unit: string;
-  /** Decimal places for display and nonce-tolerance calculation */
+  /** Decimal places for display */
   precision: number;
   /** Absolute biological bounds used for deterministic mapping */
   range: GlobalRange;
@@ -46,12 +46,10 @@ export interface Demographics {
 
 export interface MarkerResult {
   marker: Marker;
-  /** Raw generated or nonce-adjusted value in marker's units */
+  /** Raw generated value in marker's units */
   value: number;
   /** Underlying [0,1] float before range mapping */
   float: number;
-  /** Applied adjustment nonce, if any */
-  nonce?: string;
   /** Z-score relative to demographic stats */
   zScore?: number;
 }
@@ -63,29 +61,12 @@ export interface UrlState {
   date: string;
   sex: BiologicalSex;
   ageBracket: AgeBracket;
-  /** Map of markerId → nonce string */
-  nonces: Record<string, string>;
   /** 'raw' | 'zscore' */
   lens: 'raw' | 'zscore';
   /** Which marker is expanded for detail view */
   activeMarker?: string;
 }
 
-// ─── Nonce miner messages ──────────────────────────────────────────────────
+// ─── Biometric identity ───────────────────────────────────────────────────
 
-export interface MinerRequest {
-  passphrase: string;
-  markerIndex: number;
-  markerId: string;
-  year: number;
-  month: number;
-  targetValue: number;
-  rangeMin: number;
-  rangeMax: number;
-  precision: number;
-}
-
-export type MinerResponse =
-  | { type: 'progress'; tried: number }
-  | { type: 'found'; nonce: string; value: number; markerId: string }
-  | { type: 'notFound'; markerId: string };
+export type IdentityDescriptor = Float32Array;

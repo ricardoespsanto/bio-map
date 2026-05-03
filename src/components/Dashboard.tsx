@@ -1,17 +1,14 @@
 import { useState } from 'react';
-import type { MarkerResult, Marker } from '../types';
+import type { MarkerResult } from '../types';
 import type { UrlState } from '../types';
 import { MarkerCard } from './MarkerCard';
 import { TrendChart, buildMonthLabels } from './TrendChart';
 import { DemographicsSelector } from './DemographicsSelector';
-import { NonceMiner } from './NonceMiner';
 import type { BiologicalSex, AgeBracket } from '../types';
 import { isSexSplitRange } from '../types';
 import type { LoadState } from '../hooks/useBioMap';
 
 interface Props {
-  passphrase: string;
-  markers: Marker[];
   results: MarkerResult[];
   trendData: Record<string, number[]>;
   loadState: LoadState;
@@ -23,8 +20,6 @@ interface Props {
 const CATEGORIES = ['Metabolic', 'Lipids', 'Hormones', 'Thyroid', 'Nutrients', 'CBC', 'Renal', 'Liver', 'Inflammation'];
 
 export function Dashboard({
-  passphrase,
-  markers,
   results,
   trendData,
   loadState,
@@ -32,29 +27,17 @@ export function Dashboard({
   onUrlUpdate,
   onLock,
 }: Props) {
-  const [calibratingId, setCalibratingId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const { date, sex, ageBracket, nonces, lens, activeMarker } = urlState;
+  const { date, sex, ageBracket, lens, activeMarker } = urlState;
   const [year, month] = date.split('-').map(Number);
-  const monthLabels = buildMonthLabels(year, month);
+  const monthLabels = buildMonthLabels(month);
   const currentMonth = month == new Date().getMonth() + 1;
 
   const filteredResults =
     selectedCategory === 'All'
       ? results
       : results.filter((r) => r.marker.category === selectedCategory);
-
-  const calibratingMarker = calibratingId
-    ? markers.find((m) => m.id === calibratingId)
-    : null;
-  const calibratingIndex = calibratingId
-    ? markers.findIndex((m) => m.id === calibratingId)
-    : -1;
-
-  function handleNonceFound(markerId: string, nonce: string) {
-    onUrlUpdate({ nonces: { ...nonces, [markerId]: nonce } });
-  }
 
   function prevMonth() {
     let m = month - 1;
@@ -94,7 +77,7 @@ export function Dashboard({
             <span className="font-semibold text-white text-sm">Bio-Map</span>
             {loadState === 'ready' && (
               <span className="text-xs text-slate-500 font-mono">
-                {optimal}/{results.length} optimal
+                face seed · {optimal}/{results.length} optimal
               </span>
             )}
           </div>
@@ -132,7 +115,7 @@ export function Dashboard({
             {/* Lock */}
             <button
               onClick={onLock}
-              title="Clear passphrase from memory"
+              title="Clear face identity from memory"
               className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -162,7 +145,7 @@ export function Dashboard({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <p className="text-sm">Deriving biomarkers from passphrase…</p>
+            <p className="text-sm">Deriving biomarkers from local face identity...</p>
           </div>
         )}
 
@@ -199,13 +182,11 @@ export function Dashboard({
                       ageBracket={ageBracket}
                       lens={lens}
                       isActive={activeMarker === result.marker.id}
-                      trendValues={trendData[result.marker.id]}
                       onActivate={() =>
                         onUrlUpdate({
                           activeMarker: activeMarker === result.marker.id ? undefined : result.marker.id,
                         })
                       }
-                      onCalibrate={() => setCalibratingId(result.marker.id)}
                     />
                     {/* Inline trend chart when active */}
                     {activeMarker === result.marker.id && trendData[result.marker.id]?.length >= 2 && (
@@ -230,19 +211,6 @@ export function Dashboard({
         )}
       </main>
 
-      {/* Nonce miner modal */}
-      {calibratingMarker && calibratingIndex >= 0 && (
-        <NonceMiner
-          passphrase={passphrase}
-          marker={calibratingMarker}
-          markerIndex={calibratingIndex}
-          year={year}
-          month={month}
-          currentNonce={nonces[calibratingMarker.id]}
-          onFound={handleNonceFound}
-          onClose={() => setCalibratingId(null)}
-        />
-      )}
     </div>
   );
 }

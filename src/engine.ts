@@ -1,42 +1,84 @@
 /**
- * Bio-Map Deterministic Engine — SCHEMA_VERSION v1
+ * Bio-Map Deterministic Engine - SCHEMA_VERSION v2
  *
- * Architecture: PBKDF2(passphrase, salt) → master CryptoKey
- *               HMAC-SHA256(masterKey, path) → 256-bit hash
- *               BigInt top-53-bits → float [0, 1)
- *               float → marker value in [range.min, range.max]
- *
- * All arithmetic uses integer BigInt operations before the final
- * IEEE-754 division so results are bit-identical across platforms.
+ * Architecture: local face descriptor -> canonical bytes -> HKDF seed
+ *               HMAC-SHA256(masterKey, path) -> 256-bit hash
+ *               BigInt top-53-bits -> float [0, 1)
+ *               float -> marker value in [range.min, range.max]
  */
 
-export const SCHEMA_VERSION = 'v1' as const;
+export const SCHEMA_VERSION = 'v2' as const;
 
-const STATIC_SALT_STRING = 'biomap_v1_salt';
-const PBKDF2_ITERATIONS = 100_000;
-const NONCE_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const FACE_DESCRIPTOR_LENGTH = 128;
+const HKDF_SALT_STRING = 'biomap_v2_face_salt';
+const HKDF_INFO_STRING = 'biomap_v2_face_identity_hmac_key';
+const QUANTIZATION_SCALE = 32767;
 
-// ─── Master seed derivation ────────────────────────────────────────────────
+export type FaceDescriptor = Float32Array | number[];
 
-export async function deriveMasterSeed(passphrase: string): Promise<CryptoKey> {
+export function averageFaceDescriptors(descriptors: FaceDescriptor[]): Float32Array {
+  if (descriptors.length === 0) {
+    throw new Error('At least one face descriptor is required');
+  }
+
+  const averaged = new Float32Array(FACE_DESCRIPTOR_LENGTH);
+
+  for (const descriptor of descriptors) {
+    assertDescriptorLength(descriptor);
+    for (let i = 0; i < FACE_DESCRIPTOR_LENGTH; i++) {
+      averaged[i] += descriptor[i] / descriptors.length;
+    }
+  }
+
+  return averaged;
+}
+
+export function canonicalizeFaceDescriptor(descriptor: FaceDescriptor): Uint8Array {
+  assertDescriptorLength(descriptor);
+
+  let norm = 0;
+  for (let i = 0; i < FACE_DESCRIPTOR_LENGTH; i++) {
+    norm += descriptor[i] * descriptor[i];
+  }
+  norm = Math.sqrt(norm);
+
+  if (!Number.isFinite(norm) || norm === 0) {
+    throw new Error('Face descriptor must have a non-zero finite magnitude');
+  }
+
+  const bytes = new Uint8Array(FACE_DESCRIPTOR_LENGTH * 2);
+  const view = new DataView(bytes.buffer);
+  for (let i = 0; i < FACE_DESCRIPTOR_LENGTH; i++) {
+    const normalized = descriptor[i] / norm;
+    const clamped = Math.max(-1, Math.min(1, normalized));
+    view.setInt16(i * 2, Math.round(clamped * QUANTIZATION_SCALE), false);
+  }
+
+  return bytes;
+}
+
+function assertDescriptorLength(descriptor: FaceDescriptor): void {
+  if (descriptor.length !== FACE_DESCRIPTOR_LENGTH) {
+    throw new Error(`Face descriptor must contain ${FACE_DESCRIPTOR_LENGTH} values`);
+  }
+}
+
+export async function deriveMasterSeedFromIdentity(
+  descriptor: FaceDescriptor,
+): Promise<CryptoKey> {
   const enc = new TextEncoder();
+  const canonical = canonicalizeFaceDescriptor(descriptor);
+  const ikm = await crypto.subtle.digest('SHA-256', toArrayBuffer(canonical));
 
-  const passphraseKey = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(passphrase),
-    'PBKDF2',
-    false,
-    ['deriveBits'],
-  );
-
+  const keyMaterial = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
   const masterBits = await crypto.subtle.deriveBits(
     {
-      name: 'PBKDF2',
-      salt: enc.encode(STATIC_SALT_STRING),
-      iterations: PBKDF2_ITERATIONS,
+      name: 'HKDF',
+      salt: enc.encode(HKDF_SALT_STRING),
+      info: enc.encode(HKDF_INFO_STRING),
       hash: 'SHA-256',
     },
-    passphraseKey,
+    keyMaterial,
     256,
   );
 
@@ -49,42 +91,29 @@ export async function deriveMasterSeed(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-// ─── Hash → float conversion (cross-platform determinism) ─────────────────
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
 
-/**
- * Convert a 256-bit HMAC output to a float in [0, 1) using BigInt arithmetic.
- * We take the top 53 bits so the result maps exactly into a 64-bit double
- * with no rounding ambiguity, ensuring identical values on all platforms.
- */
 export function hashBufferToFloat(hashBuffer: ArrayBuffer): number {
   const bytes = new Uint8Array(hashBuffer);
   let bigInt = 0n;
   for (const byte of bytes) {
     bigInt = (bigInt << 8n) | BigInt(byte);
   }
-  // Shift right 203 bits to isolate the top 53 bits of the 256-bit value
   const top53 = bigInt >> 203n;
-  // Divide by 2^53 — exact in IEEE-754 double since top53 < 2^53
-  return Number(top53) / 9007199254740992; // 2**53
+  return Number(top53) / 9007199254740992;
 }
 
-// ─── Per-marker derivation ─────────────────────────────────────────────────
-
-/**
- * Derive the raw [0,1) float for a single marker at a given temporal path.
- * Path template: m/{year}/{month}/{markerIndex}[/{nonce}]
- */
 export async function deriveMarkerFloat(
   masterSeed: CryptoKey,
   markerIndex: number,
   year: number,
   month: number,
-  nonce?: string,
 ): Promise<number> {
-  const path = nonce
-    ? `m/${year}/${month}/${markerIndex}/${nonce}`
-    : `m/${year}/${month}/${markerIndex}`;
-
+  const path = `m/${year}/${month}/${markerIndex}`;
   const hashBuffer = await crypto.subtle.sign(
     'HMAC',
     masterSeed,
@@ -94,22 +123,14 @@ export async function deriveMarkerFloat(
   return hashBufferToFloat(hashBuffer);
 }
 
-/**
- * Map a [0,1) float onto a concrete biological range.
- */
 export function floatToMarkerValue(float: number, min: number, max: number): number {
   return min + float * (max - min);
 }
 
-/**
- * Compute the Z-score of a value relative to demographic statistics.
- */
 export function computeZScore(value: number, mean: number, sd: number): number {
   if (sd === 0) return 0;
   return (value - mean) / sd;
 }
-
-// ─── Batch generation ─────────────────────────────────────────────────────
 
 export interface MarkerSpec {
   id: string;
@@ -124,89 +145,18 @@ export interface DerivedMarker {
 }
 
 export async function generateAllMarkers(
-  passphrase: string,
+  identityDescriptor: FaceDescriptor,
   markers: MarkerSpec[],
   year: number,
   month: number,
-  nonces: Record<string, string> = {},
 ): Promise<DerivedMarker[]> {
-  const masterSeed = await deriveMasterSeed(passphrase);
+  const masterSeed = await deriveMasterSeedFromIdentity(identityDescriptor);
 
   return Promise.all(
     markers.map(async (marker, index) => {
-      const nonce = nonces[marker.id];
-      const float = await deriveMarkerFloat(masterSeed, index, year, month, nonce);
+      const float = await deriveMarkerFloat(masterSeed, index, year, month);
       const value = floatToMarkerValue(float, marker.rangeMin, marker.rangeMax);
       return { id: marker.id, float, value };
     }),
   );
-}
-
-// ─── Nonce finder (async generator) ───────────────────────────────────────
-
-export type NonceSearchUpdate =
-  | { found: false; tried: number }
-  | { found: true; nonce: string; value: number };
-
-/**
- * Brute-force an Adjustment Nonce such that the derived marker value
- * lands within `tolerance` of `targetValue`.
- *
- * Yields periodic progress updates and a final found/not-found result.
- * Tolerance defaults to 0.5 × the unit step (10^-precision).
- */
-export async function* findNonce(
-  masterSeed: CryptoKey,
-  markerIndex: number,
-  year: number,
-  month: number,
-  targetValue: number,
-  rangeMin: number,
-  rangeMax: number,
-  precision: number,
-  maxLen = 6,
-): AsyncGenerator<NonceSearchUpdate> {
-  const tolerance = 0.5 * Math.pow(10, -precision);
-  let tried = 0;
-
-  for (let len = 1; len <= maxLen; len++) {
-    for (const nonce of generateNonceStrings(len)) {
-      const float = await deriveMarkerFloat(masterSeed, markerIndex, year, month, nonce);
-      const value = floatToMarkerValue(float, rangeMin, rangeMax);
-      tried++;
-
-      if (Math.abs(value - targetValue) <= tolerance) {
-        yield { found: true, nonce, value };
-        return;
-      }
-
-      if (tried % 500 === 0) {
-        yield { found: false, tried };
-      }
-    }
-  }
-
-  // Exhausted search space without a match
-  yield { found: false, tried };
-}
-
-// ─── Nonce string generator ────────────────────────────────────────────────
-
-function* generateNonceStrings(length: number): Generator<string> {
-  const base = NONCE_ALPHABET.length;
-  const indices = new Array<number>(length).fill(0);
-
-  while (true) {
-    yield indices.map((i) => NONCE_ALPHABET[i]).join('');
-
-    // Increment with carry
-    let pos = length - 1;
-    while (pos >= 0) {
-      indices[pos]++;
-      if (indices[pos] < base) break;
-      indices[pos] = 0;
-      pos--;
-    }
-    if (pos < 0) return;
-  }
 }

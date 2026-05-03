@@ -105,8 +105,8 @@ export function TrendChart({ values, rangeMin, rangeMax, optimalMin, optimalMax,
   );
 }
 
-// Helper: generate 6-month label array ending at given year/month
-export function buildMonthLabels(year: number, month: number): string[] {
+// Helper: generate 6-month label array ending at given month
+export function buildMonthLabels(month: number): string[] {
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const labels: string[] = [];
   for (let offset = 5; offset >= 0; offset--) {

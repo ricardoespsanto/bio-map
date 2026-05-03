@@ -5,17 +5,13 @@ import { BellCurve } from './BellCurve';
 import rawDemographics from '../data/demographics.json';
 import type { AgeBracket } from '../types';
 
-type DemographicsData = typeof rawDemographics;
-
 interface Props {
   result: MarkerResult;
   sex: BiologicalSex;
   ageBracket: AgeBracket;
   lens: 'raw' | 'zscore';
   isActive: boolean;
-  trendValues?: number[];
   onActivate: () => void;
-  onCalibrate: () => void;
 }
 
 function statusColor(zScore: number | undefined, value: number, optMin: number, optMax: number) {
@@ -60,9 +56,8 @@ export function MarkerCard({
   lens,
   isActive,
   onActivate,
-  onCalibrate,
 }: Props) {
-  const { marker, value, zScore, nonce } = result;
+  const { marker, value, zScore } = result;
 
   const optimalRange = isSexSplitRange(marker.optimalRange)
     ? sex === 'female' ? marker.optimalRange.female : marker.optimalRange.male
@@ -94,11 +89,6 @@ export function MarkerCard({
             <p className="text-slate-200 font-medium text-sm mt-0.5">{marker.name}</p>
           </div>
           <div className="flex items-center gap-1.5">
-            {nonce && (
-              <span className="text-xs bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded font-mono" title="Calibrated with nonce">
-                ⚙ {nonce}
-              </span>
-            )}
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cls.badge}`}>
               {color === 'green' ? 'Optimal' : color === 'yellow' ? 'Borderline' : 'Review'}
             </span>
@@ -142,12 +132,7 @@ export function MarkerCard({
               μ {stats.mean} · σ {stats.sd}
             </span>
           )}
-          <button
-            onClick={onCalibrate}
-            className="text-xs text-cyan-500 hover:text-cyan-300 font-medium transition-colors ml-auto"
-          >
-            Calibrate with lab result →
-          </button>
+          <span className="text-xs text-slate-600 ml-auto">face-derived</span>
         </div>
       )}
     </div>

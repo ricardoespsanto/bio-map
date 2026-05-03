@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { deriveMasterSeed, deriveMarkerFloat, floatToMarkerValue, computeZScore } from '../engine';
-import type { Marker, MarkerResult, Demographics, StatParams } from '../types';
+import { useEffect, useRef, useState } from 'react';
+import { deriveMasterSeedFromIdentity, deriveMarkerFloat, floatToMarkerValue, computeZScore } from '../engine';
+import type { Marker, MarkerResult, Demographics, StatParams, IdentityDescriptor } from '../types';
 import { isSexSplitRange } from '../types';
 import rawDemographics from '../data/demographics.json';
 
@@ -35,11 +35,10 @@ interface UseBioMapResult {
 }
 
 export function useBioMap(
-  passphrase: string | null,
+  identityDescriptor: IdentityDescriptor | null,
   markers: Marker[],
   year: number,
   month: number,
-  nonces: Record<string, string>,
   demographics: Demographics,
 ): UseBioMapResult {
   const [loadState, setLoadState] = useState<LoadState>('idle');
@@ -47,35 +46,33 @@ export function useBioMap(
   const [error, setError] = useState<string>();
   const [trendData, setTrendData] = useState<Record<string, number[]>>({});
 
-  // Stable string keys — avoids infinite loops from new object references each render
-  const noncesKey = useMemo(() => JSON.stringify(nonces), [nonces]);
   const demoKey = `${demographics.sex}:${demographics.ageBracket}`;
 
   // Abort controller for cancellation when inputs change
   const abortRef = useRef<{ cancelled: boolean }>({ cancelled: false });
 
   useEffect(() => {
-    if (!passphrase) {
+    if (!identityDescriptor) {
       setLoadState('idle');
       setResults([]);
       setTrendData({});
       return;
     }
 
+    const descriptor = identityDescriptor;
     const abort = { cancelled: false };
     abortRef.current = abort;
     setLoadState('deriving');
 
     async function derive() {
       try {
-        const masterSeed = await deriveMasterSeed(passphrase!);
+        const masterSeed = await deriveMasterSeedFromIdentity(descriptor);
         if (abort.cancelled) return;
 
         // Derive current month
         const derived = await Promise.all(
           markers.map(async (marker, index) => {
-            const nonce = nonces[marker.id];
-            const float = await deriveMarkerFloat(masterSeed, index, year, month, nonce);
+            const float = await deriveMarkerFloat(masterSeed, index, year, month);
             const value = floatToMarkerValue(float, marker.range.min, marker.range.max);
             const stats = getDemographicStats(
               rawDemographics as DemographicsData,
@@ -83,7 +80,7 @@ export function useBioMap(
               demographics,
             );
             const zScore = stats ? computeZScore(value, stats.mean, stats.sd) : undefined;
-            return { marker, value, float, nonce, zScore } satisfies MarkerResult;
+            return { marker, value, float, zScore } satisfies MarkerResult;
           }),
         );
 
@@ -101,8 +98,7 @@ export function useBioMap(
               tMonth += 12;
               tYear--;
             }
-            const nonce = nonces[marker.id];
-            const float = await deriveMarkerFloat(masterSeed, index, tYear, tMonth, nonce);
+            const float = await deriveMarkerFloat(masterSeed, index, tYear, tMonth);
             values.push(floatToMarkerValue(float, marker.range.min, marker.range.max));
           }
           trend[marker.id] = values;
@@ -123,7 +119,7 @@ export function useBioMap(
       abort.cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [passphrase, markers, year, month, noncesKey, demoKey]);
+  }, [identityDescriptor, markers, year, month, demoKey]);
 
   return { loadState, results, error, trendData };
 }
